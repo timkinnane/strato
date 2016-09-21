@@ -1,0 +1,7 @@
+{
+  "verbose": true,
+  "ignoreRoot": [".git"],
+  "watch": ["node_modules/**/*.js", "node_modules/**/*.coffee", "external-scripts.json", "scripts", "playbook", "scenes"],
+  "exec": "coffee --nodejs --debug -r dotenv/config node_modules/hubot/bin/hubot --name 'strato'",
+  "ext": "js json coffee"
+}
