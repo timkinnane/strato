@@ -8,7 +8,8 @@
     "dotenv": "^2.0.0",
     "handlebars": "^4.0.5",
     "handlebars-intl": "^1.1.2",
-    "hubot": "file:../hubot",
+    "hubot": "^2.19.0",
+    "hubot-diagnostics": "0.0.1",
     "hubot-heroku-keepalive": "^1.0.2",
     "hubot-redis-brain": "0.0.3",
     "hubot-rocketchat": "^1.0.4",
@@ -22,7 +23,7 @@
   "scripts": {
     "run": "bin/hubot -a rocketchat",
     "watch": "nodemon -a rocketchat",
-		"shell": "nodemon",
+    "shell": "nodemon",
     "debug": "opener http://127.0.0.1:3055/?port=5858 & node-inspector --no-preload --web-port 3055 --web-host=localhost",
     "kill": "kill -9 `ps ax | grep hubot | awk '{print $1}'`"
   }
