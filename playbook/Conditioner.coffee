@@ -13,28 +13,41 @@ class Conditioner
 			matchWords: true
 			ignoreCase: true
 			ignorePunctuation: true
+			escapeValues: false
 		@b = if @config.matchWords then '\\b' else '' # word boundary capture toggle
 		@i = if @config.ignoreCase then 'i' else '' # ignore case flag toggle
 
 		# generate expressions from given conditions
 		@expressions = []
-		@expression condition if condition?
+		if typeof condition is 'array'
+			@add c for c in condition
+		else if condition?
+			@add condition
 
-	# convert range of condition formats to regular expression group
-	expression: (condition, options={}) ->
+	# add conditions to compare or capture with, converted if not already regex
+	add: (condition, key) ->
 		return @expressions.push condition if _.isRegExp.condition
 		return @expressions.push toRegExp condition if typeof condition is 'string'
 		if typeof condition is 'object'
 			for type, value of condition
-				@expressions.push @create type, value
+				re = @create type, value
+				key ?= _.size @expressions # use int index if no named key
+				@expressions[key] = re
+		return @ # return self for chaining adds
 
 	# convert strings to regular expressions
 	toRegExp: (str) ->
 		match = str.match new RegExp '^/(.+)/(.*)$'
 		new RegExp match[1], match[2] if match
 
+	# escape any special regex characters
+	escapeRegExp: (str) ->
+		str.replace /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"
+
 	# create regex for a value from various condition types
 	create: (type, value) ->
+		return false unless typeof value is 'string'
+		value = @escapeRegExp value if @config.escapeValues
 		switch type
 			# match the whole thing
 			when 'is' then new RegExp "^(#{value})$", @i
@@ -55,34 +68,53 @@ class Conditioner
 
 	# test a string against stored conditions and config
 	# returns successful if all conditions meet
+	# each conditions outcome saved to this.compared, for individual checks
 	# full match properties can be accessed from this.matches
 	compare: (str) ->
 		str = str.replace /[^\w\s]/g, '' if @config.ignorePunctuation
-		@matches = _.map @expressions, (re) -> str.match re
-		return _.every @matches # true if all trythy
+		@matches = _.mapObject @expressions, (re) -> str.match re
+		@compared = _.mapObject @matches, (match) -> match?
+		return _.every @compared # true if all truthy
 
 	# extract parts of a string matching conditions
-	# returns array of captured parts
+	# returns array of captured parts (also available as this.captured)
 	# full match properties can be accessed from this.matches
 	capture: (str) ->
 		str = str.replace /[^\w\s]/g, '' if @config.ignorePunctuation
-		@matches = _.map @expressions, (re) -> str.match re
-		return _.pluck @matches, 1
+		@matches = _.mapObject @expressions, (re) -> str.match re
+		@captured = _.mapObject @matches, (match) -> match?[1]
 
-	# verbose outputs for a range of tests against current conditions
-	degug: (tests) ->
-		#TODO
+# TESTING TODO: convert to unit tests
 
-coffeeTest = new Conditioner
-	starts: 'order|get'
-	contains: 'coffee(s)?'
-	range: '1-6'
-	after: 'for'
-	ends: 'please'
-	excludes: 'not'
+validOrder = new Conditioner()
+	.add starts: 'order|get'
+	.add contains: 'coffee(s)?'
+	.add excludes: 'not'
 
-# console.log coffeeTest.expressions
-console.log coffeeTest.capture 'Order 5 coffees for me please'
-console.log coffeeTest.capture 'Get 2 coffees for Tim please'
-console.log coffeeTest.capture 'Order 1 coffee please'
-# console.log coffeeTest.matches
+orderDetails = new Conditioner()
+	.add range: '1-3', 'qty'
+	.add after: 'for', 'for'
+	.add ends: 'please', 'polite'
+
+questionFormat = new Conditioner ends: '?'
+,
+	matchWords: false
+	escapeValues: true
+	ignorePunctuation: false
+
+testOrder = "Order 3 coffees for Tim please"
+# console.log validOrder.compare testOrder
+# console.log validOrder.expressions
+# console.log validOrder.matches
+# console.log validOrder.compared
+console.log orderDetails.capture "Order 3 coffees for Tim"
+console.log orderDetails.expressions
+console.log orderDetails.matches
+console.log orderDetails.captured
+
+# console.log "Question (true):", questionFormat.compare "Is this a question?"
+# console.log questionFormat.expressions
+# console.log questionFormat.matches
+# console.log "Question (false):", questionFormat.compare "This isn't a question."
+# console.log questionFormat.expressions
+# console.log questionFormat.matches

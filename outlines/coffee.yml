@@ -3,19 +3,21 @@ reply: true
 ignoreCase: true
 ignorePunctuation: true
 entrance:
-  starts: order
-  contains: coffee(s)?
-  optional: 1-3
-  findAfter: for
-  ends: please
-  exclude: not 
+  compare:
+    - starts: order|get
+    - contains: coffee(s)?
+    - excludes: not
+  capture:
+    - range: 1-3
+    - after: for
+    - ends: please
 exit: /\bcancel\b$/i
 exitLine: Ok, no coffee for you.
 finishLine: Got it. Adding your order to the list.
 timeoutLine: Timed out! Say [order] to start again.
 skipKeyword: /\bno thanks\b$/i
 skipMessage: or [no thanks].
-conversation:
+choices:
   -
     question: |
       Great! What would you like?
