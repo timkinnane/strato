@@ -16,7 +16,8 @@
     "hubot-rocketchat": "^1.0.4",
     "q": "^1.4.1",
     "underscore": "^1.8.3",
-    "yamljs": "^0.2.8"
+    "yamljs": "^0.2.8",
+    "conditioner-regex": "0.1.2"
   },
   "engines": {
     "node": "^4.4.x"

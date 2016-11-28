@@ -1,5 +1,5 @@
-
 Scene = require './Scene'
+Conditioner = require 'conditioner-regex'
 _ = require 'underscore'
 
 # An Act executes a dynamic model of branching dialogue

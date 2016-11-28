@@ -3,9 +3,6 @@
 Dialogue = require './Dialogue'
 _ = require 'underscore'
 
-defaultTimeout = process.env.DIALOGUE_TIMEOUT or 30000
-defaultTimeoutLine = process.env.DIALOGUE_TIMEOUT_LINE or 'Timed out! Please start again.'
-
 # handles array of participants engaged in dialogue
 # while engaged the robot will only follow the given dialogue choices
 # entering a user scene will engage the user
@@ -43,16 +40,12 @@ class Scene
 			options = args[0]
 
 		# extend any missing options with defaults
-		options ?= {}
-		config = _.defaults options,
-			timeout: defaultTimeout
-			timeoutLine: defaultTimeoutLine
-			reply: if @type is 'room' then false else true
+		reply ?= if @type is 'room' then false else true
 
 		# setup dialogue to handle choices for response branching
 		audience = @whoSpeaks res.message
 		@robot.logger.debug "Engaging #{ @type } #{ audience } in dialogue"
-		@engaged[audience] = new Dialogue @robot, res, config
+		@engaged[audience] = new Dialogue res, options
 
 		# send first line of dialogue if provided
 		res.reply reply if reply?
